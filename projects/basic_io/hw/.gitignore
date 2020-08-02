@@ -1,0 +1,7 @@
+*.log
+*.done
+.Xil
+vivado*
+build/
+NA/
+dts/include/

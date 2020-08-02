@@ -1,0 +1,10 @@
+*.txt
+*.out
+*.dtb
+*.o
+done.flag
+cscope.files
+cscope.out
+tags
+
+build/
