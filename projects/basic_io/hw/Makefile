@@ -3,9 +3,16 @@ VIVADO := /opt/Xilinx/Vivado/$(VIVADO_VERSION)/bin/vivado
 SDK := /opt/Xilinx/SDK/$(VIVADO_VERSION)/bin/xsdk
 XSDB := /opt/Xilinx/Vivado/$(VIVADO_VERSION)/bin/xsdb
 
+DEVICE_TREE_XLNX_PATH := ../../../submodules/device-tree-xlnx
+
 TARGET = build/System_top.hdf
 IP_DIR = vhdl/ip
-DTS_FILES = pcw.dtsi pl.dtsi system-top.dts zynq-7000.dtsi
+
+DTS_TARGET = build/dts/system-top.dts
+DTS_FILES = \
+	pcw.dtsi \
+	system-top.dts \
+	zynq-7000.dtsi
 
 IP_FLAG = $(IP_DIR)/done.flag
 
@@ -68,13 +75,16 @@ boot:
 gui:
 	$(VIVADO) build/project_1.xpr
 
-dts: dts/system-top.dts
+dts: $(DTS_TARGET)
 
-dts/system-top.dts: $(TARGET)
-	$(SDK) -batch -source $(PROJ_DIR)/generate_device_tree.tcl | tee dts.log
-	cp $(addprefix build/dts/, $(DTS_FILES)) $(@D)
-	@echo "Patching dts file to include system-user.dtsi."
-	@sed -i '/^\/include\/ "pcw.dtsi"/a \/include\/ "system-user.dtsi"' $@
+$(DTS_TARGET): $(TARGET)
+	@(HWDEF_PATH=$(CURDIR)/$(TARGET) \
+	  DEVICE_TREE_XLNX_PATH=$(CURDIR)/$(DEVICE_TREE_XLNX_PATH) \
+	  OUTDIR_PATH=$(CURDIR)/build/dts \
+	  $(SDK) -batch -source $(SCRIPTS_DIR)/generate_device_tree.tcl | tee dts.log)
+	cp $(addprefix build/dts/, $(DTS_FILES)) dts/
+	#@echo "Patching dts file to include system-user.dtsi."
+	#@sed -i '/^\/include\/ "pcw.dtsi"/a \/include\/ "system-user.dtsi"' $@
 
 clean:
 	#$(MAKE) -C $(IP_DIR) clean
