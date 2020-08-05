@@ -19,7 +19,18 @@ library work;
 
 entity System_top is
     port(
-        led0_g : out std_logic
+        -- Tri-color LEDs
+        Led0_r : out std_logic;
+        Led0_g : out std_logic;
+        Led0_b : out std_logic;
+        Led1_r : out std_logic;
+        Led1_g : out std_logic;
+        Led1_b : out std_logic;
+        -- Push buttons
+        Btn_0  : in std_logic;
+        Btn_1  : in std_logic;
+        -- User Header J1
+        User_dio : inout std_logic_vector(12 downto 1)
     );
 end entity;
 
@@ -32,7 +43,15 @@ architecture rtl of System_top is
     signal Clk     : std_logic;
     signal Reset_n : std_logic;
 
-    signal Counter : unsigned(25 downto 0);
+    signal Counter    : unsigned(15 downto 0);
+    signal Counter_ms : unsigned(9 downto 0);
+
+    signal OneSecondPulse : std_logic;
+    signal HalfSecondPulse : std_logic;
+    signal QuarterSecondPulse : std_logic;
+
+    signal OneSecond : std_logic;
+    signal HalfSecond : std_logic;
 
     --signal PL_Gpio : std_logic_vector(5 downto 0);
 
@@ -150,16 +169,59 @@ begin
             --M01_AXI_wvalid(0)  => s_axi_wvalid
         );
 
-    led0_g <= Counter(Counter'left);
+    Led0_r <= '0';
+    Led0_g <= OneSecond or Btn_0;
+    Led0_b <= '0';
+
+    Led1_r <= '0';
+    Led1_g <= '0';
+    Led1_b <= HalfSecond or Btn_1;
+
+    MyProc_proc: process (Clk, Reset_n)
+    begin
+        if (Reset_n = '0') then
+            OneSecond <= '0';
+            HalfSecond <= '0';
+        elsif (rising_edge(Clk)) then
+            if (HalfSecondPulse = '1') then
+                OneSecond <= not OneSecond;
+            end if;
+
+            if (QuarterSecondPulse = '1') then
+                HalfSecond <= not HalfSecond;
+            end if;
+    
+        end if;
+    end process;
 
     Counter_proc: process (Clk, Reset_n)
     begin
         if (Reset_n = '0') then
             Counter <= (others => '0');
+            Counter_ms <= (others => '0');
+            HalfSecondPulse <= '0';
+            QuarterSecondPulse <= '0';
         elsif (rising_edge(Clk)) then
+            HalfSecondPulse <= '0';
+            QuarterSecondPulse <= '0';
+
             Counter <= Counter + 1;
-            if (Counter = FCLK_TICKS_PER_s-1) then
+
+            if (Counter = FCLK_TICKS_PER_ms-1) then
                 Counter <= (others => '0');
+                Counter_ms <= Counter_ms + 1;
+                if (Counter_ms = 999) then
+                    Counter_ms <= (others => '0');
+                    HalfSecondPulse <= '1';
+                    QuarterSecondPulse <= '1';
+                elsif (Counter_ms = 749) then
+                    QuarterSecondPulse <= '1';
+                elsif (Counter_ms = 499) then
+                    HalfSecondPulse <= '1';
+                    QuarterSecondPulse <= '1';
+                elsif (Counter_ms = 249) then
+                    QuarterSecondPulse <= '1';
+                end if;
             end if;
         end if;
     end process;

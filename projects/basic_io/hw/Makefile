@@ -63,7 +63,7 @@ synth: | build
 
 par: | build
 	$(VIVADO) -mode batch -notrace -source $(SCRIPTS_DIR)/run_vivado.tcl -tclargs $@
-	unzip -o -d buid/ $(TARGET)
+	unzip -o -d build/ $(TARGET)
 
 $(IP_FLAG):
 	@echo $(MAKE) -C $(IP_DIR)
