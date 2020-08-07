@@ -16,12 +16,15 @@ DTS_FILES = \
 
 IP_FLAG = $(IP_DIR)/done.flag
 
-SCRIPTS_DIR=$(CURDIR)/../../../vivado_scripts
+VIVADO_SCRIPTS=$(CURDIR)/../../../vivado_scripts
 PROJ_DIR=$(CURDIR)/proj
 BUILD_DIR=$(CURDIR)/build
 
-XILINX_HW_SERVER=192.168.1.8:3121
-#XILINX_HW_SERVER=localhost:3121
+JTAG_BOOT_SCRIPTS = $(CURDIR)/../../../linux_os/scripts
+XILINX_HW_SERVER = 192.168.1.8 
+#XILINX_HW_SERVER = localhost
+FSBL_PATH = $(CURDIR)/../sw/build/fsbl.elf
+UBOOT_PATH = $(CURDIR)/../../../linux_os/build/u-boot
 
 export PROJ_DIR
 export BUILD_DIR
@@ -39,7 +42,7 @@ help:
 	@echo "    dts   : Generates device-tree from hardware specification."
 	@echo "    ip    : Generates ip products only (in $(IP_DIR) directory)."
 	@echo "    gui   : Launches the Vivado gui with the current project file."
-	@echo "    boot  : Boots design via jtag (see proj/jtagboot.tcl)."
+	@echo "    boot  : Boots design via jtag (see linux_os/scripts/jtagboot.tcl)."
 	@echo "    clean : Cleans all generated products (in the build/ directory)."
 
 build:
@@ -47,22 +50,22 @@ build:
 
 $(TARGET): $(IP_FLAG) | build
 	@echo "Building PL design."
-	echo $(VIVADO) -mode batch -notrace -source $(SCRIPTS_DIR)/run_vivado.tcl -tclargs all
+	echo $(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs all
 	unzip -o -d build/ $@
 
 # make proj (to create a new project only)
 proj: clean $(IP_FLAG) | build 
 	@echo "Cleaning and creating new project."
-	$(VIVADO) -mode batch -notrace -source $(SCRIPTS_DIR)/run_vivado.tcl -tclargs $@
+	$(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs $@
 
 # Rules for incremental development
 # make synth (to synthesize design only)
 # make par (to synthesize (if necessary) and implement to bitstream)
 synth: | build
-	$(VIVADO) -mode batch -notrace -source $(SCRIPTS_DIR)/run_vivado.tcl -tclargs $@
+	$(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs $@
 
 par: | build
-	$(VIVADO) -mode batch -notrace -source $(SCRIPTS_DIR)/run_vivado.tcl -tclargs $@
+	$(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs $@
 	unzip -o -d build/ $(TARGET)
 
 $(IP_FLAG):
@@ -70,7 +73,11 @@ $(IP_FLAG):
 	touch $(IP_FLAG)
 
 boot:
-	$(XSDB) $(PROJ_DIR)/jtagboot.tcl $(XILINX_HW_SERVER)
+	@(HW_SERVER=$(XILINX_HW_SERVER) \
+	  BITFILE=$(CURDIR)/$(TARGET:.hdf=.bit) \
+	  FSBL=$(FSBL_PATH) \
+	  UBOOT=$(UBOOT_PATH) \
+	  $(XSDB) $(JTAG_BOOT_SCRIPTS)/jtagboot.tcl)
 
 gui:
 	$(VIVADO) build/project_1.xpr
@@ -81,7 +88,7 @@ $(DTS_TARGET): $(TARGET)
 	@(HWDEF_PATH=$(CURDIR)/$(TARGET) \
 	  DEVICE_TREE_XLNX_PATH=$(CURDIR)/$(DEVICE_TREE_XLNX_PATH) \
 	  OUTDIR_PATH=$(CURDIR)/build/dts \
-	  $(SDK) -batch -source $(SCRIPTS_DIR)/generate_device_tree.tcl | tee dts.log)
+	  $(SDK) -batch -source $(VIVADO_SCRIPTS)/generate_device_tree.tcl | tee dts.log)
 	cp $(addprefix build/dts/, $(DTS_FILES)) dts/
 	#@echo "Patching dts file to include system-user.dtsi."
 	#@sed -i '/^\/include\/ "pcw.dtsi"/a \/include\/ "system-user.dtsi"' $@
