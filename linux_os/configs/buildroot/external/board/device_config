@@ -1,0 +1,14 @@
+HOSTNAME=cora_z7_10
+
+#S40network config
+ETH0_USE_DHCP=y
+ETH0_IP_STATIC=192.168.2.1
+ETH0_NETMASK=255.255.255.0
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     

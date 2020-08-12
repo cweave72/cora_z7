@@ -17,10 +17,10 @@ UBOOT_TARGET = u-boot-xlnx/u-boot
 LINUX_TARGET = linux-xlnx/arch/arm/boot/zImage
 BR_TARGET = buildroot/output/images/rootfs.cpio.gz
 
-.PHONY: all u-boot linux buildroot dtb umenuconfig lmenuconfig images uclean lclean bclean clean help
+.PHONY: all u-boot linux buildroot umenuconfig lmenuconfig images uclean lclean bclean clean help
 
 # All targets
-all: u-boot linux buildroot images dtb
+all: u-boot linux buildroot images
 
 help:
 	@echo "Targets:"
@@ -38,12 +38,6 @@ help:
 
 build:
 	mkdir -p $@
-
-dtb:
-ifeq ($(DTB),)
-	$(MAKE) -C dts/linux all
-	cp dts/linux/*.dtb build/
-endif
 
 #### u-boot #########
 u-boot: build/$(notdir $(UBOOT_TARGET))
@@ -67,7 +61,7 @@ $(UBOOT_DTS_PATH): $(UBOOT_DTS)
 $(UBOOT_CONFIG):
 
 #### linux #########
-linux: build/$(notdir $(LINUX_TARGET))
+linux: build/$(notdir $(LINUX_TARGET)) images
 
 build/$(notdir $(LINUX_TARGET)): $(LINUX_TARGET) | build
 	cp $(LINUX_TARGET) $@
@@ -87,7 +81,7 @@ $(LINUX_DTS_PATH): $(DTS)
 $(LINUX_CONFIG):
 
 # Buildroot ########
-buildroot: build/$(notdir $(BR_TARGET))
+buildroot: build/$(notdir $(BR_TARGET)) images
 
 build/$(notdir $(BR_TARGET)): $(BR_TARGET) | build
 	cp -f $(BR_TARGET) $@
@@ -109,8 +103,9 @@ bmenuconfig:
 	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external menuconfig
 
 images:
-	mkimage -n 'Ramdisk Image' -A arm -O linux -T ramdisk -C gzip -d build/rootfs.cpio.gz build/initramfs.ub 
-	mkimage -n 'Kernel Image' -A arm -O linux -C none -T kernel -a 0x8000 -e 0x8000 -d build/zImage build/uImage
+	@echo "Creating Ramdisk and Kernel images for booting."
+	@mkimage -n 'Ramdisk Image' -A arm -O linux -T ramdisk -C gzip -d build/rootfs.cpio.gz build/initramfs.ub 
+	@mkimage -n 'Kernel Image' -A arm -O linux -C none -T kernel -a 0x8000 -e 0x8000 -d build/zImage build/uImage
 
 uclean:
 	$(MAKE) -C u-boot-xlnx distclean
