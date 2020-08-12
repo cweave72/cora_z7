@@ -2,7 +2,6 @@
 .PHONY: all hw sw boot clean help
 
 help:
-
 	@echo "Targets supported:"
 	@echo "    all   : Creates all products (fsbl, bitstream, device-tree). Use clean first to re-create all."
 	@echo "    hw    : Builds the FPGA binaries."

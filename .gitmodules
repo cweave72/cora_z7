@@ -5,3 +5,11 @@
 	path = linux_os/u-boot-xlnx
 	url = https://github.com/Xilinx/u-boot-xlnx.git
     ignore = dirty
+[submodule "linux_os/linux-xlnx"]
+	path = linux_os/linux-xlnx
+	url = https://github.com/Xilinx/linux-xlnx
+    ignore = dirty
+[submodule "linux_os/buildroot"]
+	path = linux_os/buildroot
+	url = https://github.com/buildroot/buildroot.git
+    ignore = dirty

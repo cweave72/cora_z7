@@ -1,23 +1,20 @@
 CURDIR = $(shell pwd)
 
-DTS = dts/u-boot/zynq-cora-z7-10.dts
-DTS_FILE = $(notdir $(DTS))
-DTB_FILE = $(addsuffix .dtb, $(basename $(DTS_FILE)))
-
+UBOOT_DTS = dts/u-boot/zynq-cora-z7-10.dts
 UBOOT_CONFIG = configs/u-boot/cora_z7_10_defconfig
 UBOOT_CONFIG_PATH = u-boot-xlnx/configs/$(notdir $(UBOOT_CONFIG))
-UBOOT_DTS_PATH = u-boot-xlnx/arch/arm/dts/$(DTS_FILE)
+UBOOT_DTS_PATH = u-boot-xlnx/arch/arm/dts/$(notdir $(UBOOT_DTS))
 
-LINUX_CONFIG = configs/kernel/zynq_pluto_defconfig
-LINUX_CONFIG_PATH = linux/arch/arm/configs/$(notdir $(LINUX_CONFIG))
+LINUX_CONFIG = configs/kernel/cora_z7_10_defconfig
+LINUX_CONFIG_PATH = linux-xlnx/arch/arm/configs/$(notdir $(LINUX_CONFIG))
 
-BR_CONFIG = configs/buildroot/external/configs/zynq_pluto_defconfig
+BR_CONFIG = configs/buildroot/external/configs/cora_z7_10_defconfig
 BR_TOOLCHAIN = /opt/Xilinx/SDK/2018.2/gnu/aarch32/lin/gcc-arm-linux-gnueabi
 
 CROSS_COMPILE = arm-linux-gnueabihf-
 
 UBOOT_TARGET = u-boot-xlnx/u-boot
-LINUX_TARGET = linux/arch/arm/boot/zImage
+LINUX_TARGET = linux-xlnx/arch/arm/boot/zImage
 BR_TARGET = buildroot/output/images/rootfs.cpio.gz
 
 .PHONY: all u-boot linux buildroot dtb umenuconfig lmenuconfig images uclean lclean bclean clean help
@@ -33,6 +30,7 @@ help:
 	@echo "	buildroot   : Builds the rootfs ($(BR_TARGET))."
 	@echo "	umenuconfig : Launch u-boot menuconfig."
 	@echo "	lmenuconfig : Launch linux menuconfig."
+	@echo "	bmenuconfig : Launch buildroot menuconfig."
 	@echo "	uclean      : Clean u-boot."
 	@echo "	lclean      : Clean linux."
 	@echo "	bclean      : Clean buildroot."
@@ -42,9 +40,10 @@ build:
 	mkdir -p $@
 
 dtb:
-	$(MAKE) -C hw dts
-	$(MAKE) -C hw/dts/ all
-	cp hw/dts/*.dtb build/
+ifeq ($(DTB),)
+	$(MAKE) -C dts/linux all
+	cp dts/linux/*.dtb build/
+endif
 
 #### u-boot #########
 u-boot: build/$(notdir $(UBOOT_TARGET))
@@ -62,7 +61,7 @@ $(UBOOT_CONFIG_PATH): $(UBOOT_CONFIG)
 	cp $? $@
 
 # Copy the device tree into the u-boot tree.
-$(UBOOT_DTS_PATH): $(DTS)
+$(UBOOT_DTS_PATH): $(UBOOT_DTS)
 	cp $? $@
 
 $(UBOOT_CONFIG):
@@ -74,8 +73,8 @@ build/$(notdir $(LINUX_TARGET)): $(LINUX_TARGET) | build
 	cp $(LINUX_TARGET) $@
 
 $(LINUX_TARGET): $(LINUX_CONFIG_PATH)
-	$(MAKE) -C linux ARCH=arm $(notdir $(LINUX_CONFIG))
-	$(MAKE) -C linux -j4 ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) zImage UIMAGE_LOADADDR=0x8000 | tee make.out
+	$(MAKE) -C linux-xlnx ARCH=arm $(notdir $(LINUX_CONFIG))
+	$(MAKE) -C linux-xlnx -j4 ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) zImage UIMAGE_LOADADDR=0x8000 | tee make.out
 
 # Copy the config into the linux tree.
 $(LINUX_CONFIG_PATH): $(LINUX_CONFIG)
@@ -94,10 +93,8 @@ build/$(notdir $(BR_TARGET)): $(BR_TARGET) | build
 	cp -f $(BR_TARGET) $@
 
 $(BR_TARGET): $(BR_CONFIG)
-	#$(MAKE) -C buildroot BR2_EXTERNAL=configs/buildroot/external menuconfig
-	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external ARCH=arm zynq_pluto_defconfig
-	$(MAKE) -C buildroot TOOLCHAIN_EXTERNAL_INSTALL_DIR=$(BR_TOOLCHAIN) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) \
-		BUSYBOX_CONFIG_FILE=$(CURDIR)/configs/buildroot/busybox-1.25.0.config all
+	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external ARCH=arm cora_z7_10_defconfig
+	$(MAKE) -C buildroot TOOLCHAIN_EXTERNAL_INSTALL_DIR=$(BR_TOOLCHAIN) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE)
 
 $(BR_CONFIG):
 
@@ -106,7 +103,10 @@ umenuconfig:
 	$(MAKE) -C u-boot-xlnx menuconfig
 
 lmenuconfig:
-	$(MAKE) -C linux menuconfig
+	$(MAKE) -C linux-xlnx menuconfig
+
+bmenuconfig:
+	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external menuconfig
 
 images:
 	mkimage -n 'Ramdisk Image' -A arm -O linux -T ramdisk -C gzip -d build/rootfs.cpio.gz build/initramfs.ub 
@@ -115,7 +115,7 @@ images:
 uclean:
 	$(MAKE) -C u-boot-xlnx distclean
 lclean:
-	$(MAKE) -C linux distclean
+	$(MAKE) -C linux-xlnx distclean
 bclean:
 	$(MAKE) -C buildroot distclean
 

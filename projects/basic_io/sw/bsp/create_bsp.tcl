@@ -1,5 +1,6 @@
 set cwd [pwd]
-set hwdef $cwd/../hw/build/System_top.hdf
+set hwdef $env(HWDEF)
+puts "Using hardware definition: $hwdef."
 
 setws build/bsp
 

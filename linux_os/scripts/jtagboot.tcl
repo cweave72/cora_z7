@@ -4,7 +4,7 @@
 # FSBL - path to the fsbl elf file (required)
 # UBOOT - path to the u-boot image
 # DTB - path to the device-tree blob (for linux)
-# RAMDISK - path to the rootfs
+# RAMDISK - path to the rootfs (initramfs.ub)
 # UIMAGE - path to the linux kernel image
 #
 set hwserver $env(HW_SERVER)
@@ -39,6 +39,7 @@ puts "Booting from jtag"
 puts "    hswerver : $hwserver"
 puts "    bitfile  : $bitfile"
 puts "    fsbl     : $fsbl"
+puts "    uboot    : $uboot"
 puts "    dtb      : $dtb"
 puts "    ramdisk  : $ramdisk"
 puts "    kernel   : $kernel"
@@ -61,8 +62,8 @@ stop
 
 if {$uboot != "none"} {
     puts "Programming u-boot"
-    #dow $uboot
-    #con
+    dow $uboot
+    con
 }
 
 # Below we assume that if uimage is provided, all other linux boot products

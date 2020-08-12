@@ -2,6 +2,7 @@
 *.out
 *.dtb
 *.o
+*.log
 done.flag
 cscope.files
 cscope.out
