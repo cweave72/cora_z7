@@ -9,6 +9,9 @@ create_system_files () {
 
 	IFAC=/etc/network/interfaces
 
+    echo -e "127.0.0.1   localhost\n" > /etc/hosts
+    echo -e "127.0.1.1   $HOSTNAME.home $HOSTNAME\n" >> /etc/hosts
+
 	echo $HOSTNAME > /etc/hostname
 
 	### /etc/network/interfaces ###
@@ -20,6 +23,7 @@ create_system_files () {
 		echo -e "\taddress $ETH0_IP_STATIC\n""\tnetmask $ETH0_NETMASK\n" >> $IFAC
 	else
 		echo -e "iface eth0 inet dhcp\n" >> $IFAC
+        echo -e "\thostname $HOSTNAME\n" >> $IFAC
 	fi
 }
 

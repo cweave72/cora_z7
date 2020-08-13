@@ -12,20 +12,10 @@ VIVADO_SCRIPTS=$(CURDIR)/../../../vivado_scripts
 PROJ_DIR=$(CURDIR)/proj
 BUILD_DIR=$(CURDIR)/build
 
-JTAG_BOOT_SCRIPTS = $(CURDIR)/../../../linux_os/scripts
-XILINX_HW_SERVER = 192.168.1.8 
-#XILINX_HW_SERVER = localhost
-FSBL_PATH = $(CURDIR)/../sw/build/fsbl.elf
-UBOOT_PATH = $(CURDIR)/../../../linux_os/build/u-boot
-UIMAGE_PATH = $(CURDIR)/../../../linux_os/build/uImage
-DTB_PATH = $(CURDIR)/../sw/build/dts/system-top.dtb
-RAMDISK_PATH = $(CURDIR)/../../../linux_os/build/initramfs.ub
-
-
 export PROJ_DIR
 export BUILD_DIR
 
-.PHONY: all proj synth par ip gui boot clean help
+.PHONY: all proj synth par ip gui clean help
 
 all: $(TARGET)
 
@@ -37,7 +27,6 @@ help:
 	@echo "    par   : Runs (or re-runs) place-and-route step only (creates bitstream)."
 	@echo "    ip    : Generates ip products only (in $(IP_DIR) directory)."
 	@echo "    gui   : Launches the Vivado gui with the current project file."
-	@echo "    boot  : Boots design via jtag (see linux_os/scripts/jtagboot.tcl)."
 	@echo "    clean : Cleans all generated products (in the build/ directory)."
 
 build:
@@ -66,16 +55,6 @@ par: | build
 $(IP_FLAG):
 	@echo $(MAKE) -C $(IP_DIR)
 	touch $(IP_FLAG)
-
-boot:
-	@(HW_SERVER=$(XILINX_HW_SERVER) \
-	  BITFILE=$(CURDIR)/$(TARGET:.hdf=.bit) \
-	  FSBL=$(FSBL_PATH) \
-	  UBOOT=$(UBOOT_PATH) \
-	  UIMAGE=$(UIMAGE_PATH) \
-	  DTB=$(DTB_PATH) \
-	  RAMDISK=$(RAMDISK_PATH) \
-	  $(XSDB) $(JTAG_BOOT_SCRIPTS)/jtagboot.tcl)
 
 gui:
 	$(VIVADO) build/project_1.xpr

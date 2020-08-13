@@ -1,4 +1,4 @@
-HOSTNAME=cora_z7_10
+HOSTNAME=cora_z7
 
 #S40network config
 ETH0_USE_DHCP=y
