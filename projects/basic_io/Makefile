@@ -3,7 +3,7 @@ VIVADO := /opt/Xilinx/Vivado/$(VIVADO_VERSION)/bin/vivado
 SDK := /opt/Xilinx/SDK/$(VIVADO_VERSION)/bin/xsdk
 XSDB := /opt/Xilinx/Vivado/$(VIVADO_VERSION)/bin/xsdb
 
-JTAG_BOOT_SCRIPTS = $(CURDIR)/../../linux_os/scripts
+JTAG_BOOT_SCRIPT = $(CURDIR)/../../vivado_scripts/jtagboot.tcl
 XILINX_HW_SERVER = 192.168.1.8 
 #XILINX_HW_SERVER = localhost
 FSBL_PATH = $(CURDIR)/sw/build/fsbl.elf
@@ -48,7 +48,7 @@ boot:
 	  UIMAGE=$(UIMAGE_PATH) \
 	  DTB=$(DTB_PATH) \
 	  RAMDISK=$(RAMDISK_PATH) \
-	  $(XSDB) $(JTAG_BOOT_SCRIPTS)/jtagboot.tcl)
+	  $(XSDB) $(JTAG_BOOT_SCRIPT))
 
 image: | build
 	@echo "image : {" > $(BOOT_BIF)

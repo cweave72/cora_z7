@@ -8,12 +8,9 @@ IP_DIR = vhdl/ip
 
 IP_FLAG = $(IP_DIR)/done.flag
 
-VIVADO_SCRIPTS=$(CURDIR)/../../../vivado_scripts
-PROJ_DIR=$(CURDIR)/proj
-BUILD_DIR=$(CURDIR)/build
-
-export PROJ_DIR
-export BUILD_DIR
+SCRIPTS = $(CURDIR)/../../../vivado_scripts
+PROJ_DIR = $(CURDIR)/proj
+BUILD_DIR = $(CURDIR)/build
 
 .PHONY: all proj synth par ip gui clean help
 
@@ -34,22 +31,30 @@ build:
 
 $(TARGET): $(IP_FLAG) | build
 	@echo "Building PL design."
-	echo $(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs all
+	(PROJ_DIR=$(PROJ_DIR) \
+	 BUILD_DIR=$(BUILD_DIR) \
+	 $(VIVADO) -mode batch -notrace -source $(SCRIPTS)/run_vivado.tcl -tclargs all)
 	unzip -o -d build/ $@
 
 # make proj (to create a new project only)
 proj: clean $(IP_FLAG) | build 
 	@echo "Cleaning and creating new project."
-	$(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs $@
+	(PROJ_DIR=$(PROJ_DIR) \
+	 BUILD_DIR=$(BUILD_DIR) \
+	 $(VIVADO) -mode batch -notrace -source $(SCRIPTS)/run_vivado.tcl -tclargs $@)
 
 # Rules for incremental development
 # make synth (to synthesize design only)
 # make par (to synthesize (if necessary) and implement to bitstream)
 synth: | build
-	$(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs $@
+	(PROJ_DIR=$(PROJ_DIR) \
+	 BUILD_DIR=$(BUILD_DIR) \
+	 $(VIVADO) -mode batch -notrace -source $(SCRIPTS)/run_vivado.tcl -tclargs $@)
 
 par: | build
-	$(VIVADO) -mode batch -notrace -source $(VIVADO_SCRIPTS)/run_vivado.tcl -tclargs $@
+	(PROJ_DIR=$(PROJ_DIR) \
+	 BUILD_DIR=$(BUILD_DIR) \
+	 $(VIVADO) -mode batch -notrace -source $(SCRIPTS)/run_vivado.tcl -tclargs $@)
 	unzip -o -d build/ $(TARGET)
 
 $(IP_FLAG):

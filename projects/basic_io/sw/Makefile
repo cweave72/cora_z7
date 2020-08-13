@@ -4,7 +4,7 @@ XSDB := /opt/Xilinx/Vivado/$(VIVADO_VERSION)/bin/xsdb
 
 CROSS_COMPILE = arm-none-eabi-
 
-DEVICE_TREE_XLNX_PATH := ../../../submodules/device-tree-xlnx
+DEVICE_TREE_XLNX_PATH := ../../../linux_os/device-tree-xlnx
 VIVADO_SCRIPTS=../../../vivado_scripts
 
 PROC = ps7_cortexa9_0

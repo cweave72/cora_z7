@@ -1,5 +1,5 @@
 [submodule "submodules/device-tree-xlnx"]
-	path = submodules/device-tree-xlnx
+	path = linux_os/device-tree-xlnx
 	url = git://github.com/Xilinx/device-tree-xlnx
 [submodule "linux_os/u-boot-xlnx"]
 	path = linux_os/u-boot-xlnx
