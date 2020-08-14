@@ -18,7 +18,7 @@ all: $(TARGET)
 
 help:
 	@echo "Targets supported:"
-	@echo "    all   : Creates all output products (ip, bitstream, device-tree). Use clean first to re-create project file."
+	@echo "    all   : Creates all output products (ip, bitstream). Use clean first to re-create project file."
 	@echo "    proj  : Cleans and re-creates project file only."
 	@echo "    synth : Runs (or re-runs) synthesis step only."
 	@echo "    par   : Runs (or re-runs) place-and-route step only (creates bitstream)."

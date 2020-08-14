@@ -72,10 +72,6 @@ $(LINUX_TARGET): $(LINUX_CONFIG_PATH) | build
 $(LINUX_CONFIG_PATH): $(LINUX_CONFIG)
 	cp $? $@
 
-# Copy the device tree into the u-boot tree.
-$(LINUX_DTS_PATH): $(DTS)
-	cp $? $@
-
 $(LINUX_CONFIG):
 
 # Buildroot ########
