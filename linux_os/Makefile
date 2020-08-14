@@ -4,18 +4,21 @@ UBOOT_DTS = dts/u-boot/zynq-cora-z7-10.dts
 UBOOT_CONFIG = configs/u-boot/cora_z7_10_defconfig
 UBOOT_CONFIG_PATH = u-boot-xlnx/configs/$(notdir $(UBOOT_CONFIG))
 UBOOT_DTS_PATH = u-boot-xlnx/arch/arm/dts/$(notdir $(UBOOT_DTS))
+UBOOT_ELF = u-boot-xlnx/u-boot
 
 LINUX_CONFIG = configs/kernel/cora_z7_10_defconfig
 LINUX_CONFIG_PATH = linux-xlnx/arch/arm/configs/$(notdir $(LINUX_CONFIG))
+ZIMAGE = linux-xlnx/arch/arm/boot/zImage
 
 BR_CONFIG = configs/buildroot/external/configs/cora_z7_10_defconfig
 BR_TOOLCHAIN = /opt/Xilinx/SDK/2018.2/gnu/aarch32/lin/gcc-arm-linux-gnueabi
+BR_ROOTFS = buildroot/output/images/rootfs.cpio.gz
 
 CROSS_COMPILE = arm-linux-gnueabihf-
 
-UBOOT_TARGET = u-boot-xlnx/u-boot
-LINUX_TARGET = linux-xlnx/arch/arm/boot/zImage
-BR_TARGET = buildroot/output/images/rootfs.cpio.gz
+UBOOT_TARGET = build/u-boot
+LINUX_TARGET = build/zImage
+BR_TARGET = build/rootfs.cpio.gz
 
 .PHONY: all u-boot linux buildroot umenuconfig lmenuconfig images uclean lclean bclean clean help
 
@@ -40,15 +43,12 @@ build:
 	mkdir -p $@
 
 #### u-boot #########
-u-boot: build/$(notdir $(UBOOT_TARGET))
+u-boot: $(UBOOT_TARGET)
 	
-build/$(notdir $(UBOOT_TARGET)): $(UBOOT_TARGET) | build
-	cp $(UBOOT_TARGET) $@
-
-
-$(UBOOT_TARGET): $(UBOOT_CONFIG_PATH) $(UBOOT_DTS_PATH)
+$(UBOOT_TARGET): $(UBOOT_CONFIG_PATH) $(UBOOT_DTS_PATH) | build
 	$(MAKE) -C u-boot-xlnx ARCH=arm $(notdir $(UBOOT_CONFIG))
 	$(MAKE) -C u-boot-xlnx ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) UBOOTVERSION="Custom U-Boot"
+	@cp $(UBOOT_ELF) $(@D)
 
 # Copy the config into the u-boot tree.
 $(UBOOT_CONFIG_PATH): $(UBOOT_CONFIG)
@@ -61,14 +61,12 @@ $(UBOOT_DTS_PATH): $(UBOOT_DTS)
 $(UBOOT_CONFIG):
 
 #### linux #########
-linux: build/$(notdir $(LINUX_TARGET)) images
+linux: $(LINUX_TARGET)
 
-build/$(notdir $(LINUX_TARGET)): $(LINUX_TARGET) | build
-	cp $(LINUX_TARGET) $@
-
-$(LINUX_TARGET): $(LINUX_CONFIG_PATH)
+$(LINUX_TARGET): $(LINUX_CONFIG_PATH) | build
 	$(MAKE) -C linux-xlnx ARCH=arm $(notdir $(LINUX_CONFIG))
 	$(MAKE) -C linux-xlnx -j4 ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) zImage UIMAGE_LOADADDR=0x8000 | tee make.out
+	@cp -f $(ZIMAGE) $(@D)
 
 # Copy the config into the linux tree.
 $(LINUX_CONFIG_PATH): $(LINUX_CONFIG)
@@ -81,14 +79,12 @@ $(LINUX_DTS_PATH): $(DTS)
 $(LINUX_CONFIG):
 
 # Buildroot ########
-buildroot: build/$(notdir $(BR_TARGET)) images
-
-build/$(notdir $(BR_TARGET)): $(BR_TARGET) | build
-	cp -f $(BR_TARGET) $@
+buildroot: $(BR_TARGET)
 
 $(BR_TARGET): $(BR_CONFIG)
 	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external ARCH=arm cora_z7_10_defconfig
 	$(MAKE) -C buildroot TOOLCHAIN_EXTERNAL_INSTALL_DIR=$(BR_TOOLCHAIN) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE)
+	@cp $(BR_ROOTFS) $(@D)
 
 $(BR_CONFIG):
 

@@ -4,8 +4,7 @@ SDK := /opt/Xilinx/SDK/$(VIVADO_VERSION)/bin/xsdk
 XSDB := /opt/Xilinx/Vivado/$(VIVADO_VERSION)/bin/xsdb
 
 JTAG_BOOT_SCRIPT = $(CURDIR)/../../vivado_scripts/jtagboot.tcl
-XILINX_HW_SERVER = 192.168.1.8 
-#XILINX_HW_SERVER = localhost
+XILINX_HW_SERVER ?= localhost
 FSBL_PATH = $(CURDIR)/sw/build/fsbl.elf
 UBOOT_PATH = $(CURDIR)/../../linux_os/build/u-boot
 UIMAGE_PATH = $(CURDIR)/../../linux_os/build/uImage
