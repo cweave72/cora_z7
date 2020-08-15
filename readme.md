@@ -191,3 +191,69 @@ You can then ssh to the board:
 ```
 ssh root@cora_z7
 ```
+
+## Preparing a microSD card for booting
+
+I find it easiest to do the following procedure directly on the target Cora board.
+- Insert microSD into the card slot.
+- Boot to Linux via JTAG
+- The SD card will show up as ```/dev/mmcblk0```
+- Create 2 partitions, 1 boot partition (1GB), 1 regular partition
+```
+fdisk /dev/mmcblk0
+...
+Command (m for help): p
+Disk /dev/mmcblk0: 14 GB, 15485370368 bytes, 30244864 sectors
+472576 cylinders, 4 heads, 16 sectors/track
+Units: sectors of 1 * 512 = 512 bytes
+
+Device       Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type
+
+Command (m for help): n
+Partition type
+   p   primary partition (1-4)
+   e   extended
+p
+Partition number (1-4): 1
+First sector (16-30244863, default 16): 
+Using default value 16
+Last sector or +size{,K,M,G,T} (16-30244863, default 30244863): +1G
+
+Command (m for help): a
+Partition number (1-4): 1
+
+Command (m for help): n
+Partition type
+   p   primary partition (1-4)
+   e   extended
+p
+Partition number (1-4): 2
+First sector (2097168-30244863, default 2097168): 
+Using default value 2097168
+Last sector or +size{,K,M,G,T} (2097168-30244863, default 30244863): 
+Using default value 30244863
+
+Command (m for help): p
+
+Device       Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type
+/dev/mmcblk0p1 *  0,1,1       130,139,8           63    2097214    2097152 1024M 83 Linux
+/dev/mmcblk0p2    130,139,9   1023,254,63    2097215   30244863   28147649 13.4G 83 Linux
+
+Command (m for help): w
+```
+- Format the boot partition and root partition.
+```
+mkfs.vfat -F 32 -n boot /dev/mmcblk0p1
+mkfs.ext4 -L root /dev/mmcblk0p2
+```
+- Reboot
+- Mount the boot parition temporarily
+```
+mount /dev/mmcblk0p1 /mnt
+```
+- Now, from the host, you can scp the boot.bin file to the card. For example:
+```
+(host)$ scp projects/basic_io/build/boot.bin root@cora_z7:/mnt
+```
+- Install jumper JP2 (MODE) to set SD boot mode.
+- Press SRST pushbutton to trigger reboot from SD card.

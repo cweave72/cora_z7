@@ -13,10 +13,11 @@ ZIMAGE = linux-xlnx/arch/arm/boot/zImage
 BR_CONFIG = configs/buildroot/external/configs/cora_z7_10_defconfig
 BR_TOOLCHAIN = /opt/Xilinx/SDK/2018.2/gnu/aarch32/lin/gcc-arm-linux-gnueabi
 BR_ROOTFS = buildroot/output/images/rootfs.cpio.gz
+BR_ROOTFS_TAR = buildroot/output/images/rootfs.tar
 
 CROSS_COMPILE = arm-linux-gnueabihf-
 
-UBOOT_TARGET = build/u-boot
+UBOOT_TARGET = build/u-boot.elf
 LINUX_TARGET = build/zImage
 BR_TARGET = build/rootfs.cpio.gz
 
@@ -48,7 +49,7 @@ u-boot: $(UBOOT_TARGET)
 $(UBOOT_TARGET): $(UBOOT_CONFIG_PATH) $(UBOOT_DTS_PATH) | build
 	$(MAKE) -C u-boot-xlnx ARCH=arm $(notdir $(UBOOT_CONFIG))
 	$(MAKE) -C u-boot-xlnx ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) UBOOTVERSION="Custom U-Boot"
-	@cp $(UBOOT_ELF) $(@D)
+	@cp $(UBOOT_ELF) $@
 
 # Copy the config into the u-boot tree.
 $(UBOOT_CONFIG_PATH): $(UBOOT_CONFIG)
@@ -70,7 +71,7 @@ $(LINUX_TARGET): $(LINUX_CONFIG_PATH) | build
 
 # Copy the config into the linux tree.
 $(LINUX_CONFIG_PATH): $(LINUX_CONFIG)
-	cp $? $@
+	cp  $? $@
 
 $(LINUX_CONFIG):
 
@@ -81,6 +82,7 @@ $(BR_TARGET): $(BR_CONFIG)
 	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external ARCH=arm cora_z7_10_defconfig
 	$(MAKE) -C buildroot TOOLCHAIN_EXTERNAL_INSTALL_DIR=$(BR_TOOLCHAIN) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE)
 	@cp $(BR_ROOTFS) $(@D)
+	@cp $(BR_ROOTFS_TAR) $(@D)
 
 $(BR_CONFIG):
 

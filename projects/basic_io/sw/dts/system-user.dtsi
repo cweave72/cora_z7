@@ -14,8 +14,8 @@
 	};
 
 	chosen {
-		/*bootargs = "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait";*/
-		bootargs = "console=ttyPS0,115200 earlyprintk";
+		bootargs = "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait";
+		/*bootargs = "console=ttyPS0,115200 earlyprintk";*/
 		stdout-path = "serial0:115200n8";
 	};
 
