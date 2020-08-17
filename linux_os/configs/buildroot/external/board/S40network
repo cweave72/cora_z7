@@ -25,6 +25,10 @@ create_system_files () {
 		echo -e "iface eth0 inet dhcp\n" >> $IFAC
         echo -e "\thostname $HOSTNAME\n" >> $IFAC
 	fi
+
+    cat /root/.ssh/$SSH_PUB_KEY > /root/.ssh/authorized_keys
+    chmod 700 /root/.ssh
+    chmod 640 /root/.ssh/authorized_keys
 }
 
 

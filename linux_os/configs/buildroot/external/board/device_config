@@ -1,4 +1,5 @@
 HOSTNAME=cora_z7
+SSH_PUB_KEY=cora_z7_sshkey_rsa.pub
 
 #S40network config
 ETH0_USE_DHCP=y

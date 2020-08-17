@@ -1,0 +1,35 @@
+#!/bin/sh
+
+mkdir -p /sdcard/boot
+mkdir -p /sdcard/rootfs
+
+MOUNT0_SRC=/dev/mmcblk0p1
+MOUNT0_DEST=/sdcard/boot
+
+MOUNT1_SRC=/dev/mmcblk0p2
+MOUNT1_DEST=/sdcard/rootfs
+
+case "$1" in
+  start)
+    echo "Mounting $MOUNT0_SRC to $MOUNT0_DEST"
+    test -e $MOUNT0_SRC && mount $MOUNT0_SRC $MOUNT0_DEST
+    # If rootfs partition is not mounted, this means we booted from initramfs,
+    # mount the rootfs parition. This allows the rootfs to be updated.
+    if [ -e $MOUNT1_SRC ]; then
+        grep -qs /dev/root /proc/mounts || mount $MOUNT1_SRC -t ext4 $MOUNT1_DEST
+    fi
+	;;
+  stop)
+    grep -qs $MOUNT0_SRC /proc/mounts && umount $MOUNT0_DEST
+    grep -qs $MOUNT1_SRC /proc/mounts && umount $MOUNT1_DEST
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?

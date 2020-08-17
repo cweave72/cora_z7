@@ -14,6 +14,7 @@ BR_CONFIG = configs/buildroot/external/configs/cora_z7_10_defconfig
 BR_TOOLCHAIN = /opt/Xilinx/SDK/2018.2/gnu/aarch32/lin/gcc-arm-linux-gnueabi
 BR_ROOTFS = buildroot/output/images/rootfs.cpio.gz
 BR_ROOTFS_TAR = buildroot/output/images/rootfs.tar
+export BR_SSH_KEY = $(CURDIR)/keys/cora_z7_sshkey_rsa
 
 CROSS_COMPILE = arm-linux-gnueabihf-
 
@@ -78,13 +79,18 @@ $(LINUX_CONFIG):
 # Buildroot ########
 buildroot: $(BR_TARGET)
 
-$(BR_TARGET): $(BR_CONFIG)
-	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external ARCH=arm cora_z7_10_defconfig
-	$(MAKE) -C buildroot TOOLCHAIN_EXTERNAL_INSTALL_DIR=$(BR_TOOLCHAIN) ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE)
+$(BR_TARGET): $(BR_CONFIG) $(BR_SSH_KEY)
+	$(MAKE) -C buildroot BR2_EXTERNAL=$(CURDIR)/configs/buildroot/external \
+		ARCH=arm cora_z7_10_defconfig
+	$(MAKE) -C buildroot TOOLCHAIN_EXTERNAL_INSTALL_DIR=$(BR_TOOLCHAIN) \
+		ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE)
 	@cp $(BR_ROOTFS) $(@D)
 	@cp $(BR_ROOTFS_TAR) $(@D)
 
 $(BR_CONFIG):
+
+$(BR_SSH_KEY):
+	ssh-keygen -t rsa -f $@ -C lab -N ""
 
 # Helpers
 umenuconfig:

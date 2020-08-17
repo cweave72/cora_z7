@@ -13,21 +13,32 @@ RAMDISK_PATH = $(CURDIR)/../../linux_os/build/initramfs.ub
 HWDEF = $(CURDIR)/hw/build/System_top.hdf
 BITFILE = $(HWDEF:.hdf=.bit)
 
+# Bootgen vars
 BOOT_BIF = build/boot.bif
 BOOT_BIN = $(BOOT_BIF:.bif=.bin)
 
-.PHONY: all hw sw boot image clean help
+#Parameters for u-boot uEnv.txt, which should be copied to sd card with boot.bin.
+UENV = build/uEnv.txt
+UENV_BOOTARGS = "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait"
+UENV_BOOTCMD = "bootm 0x13200000 - 0x16400000"
+
+ROOTFS = $(CURDIR)/../../linux_os/build/rootfs.tar
+
+.PHONY: all hw sw boot image updateboot updaterootfs updateall clean help
 
 all: hw sw image
 
 help:
 	@echo "Targets supported:"
-	@echo "    all   : Creates all products (fsbl, bitstream, device-tree). Use clean first to re-create all."
-	@echo "    hw    : Builds the FPGA binaries."
-	@echo "    sw    : Builds the software bsp and fsbl binaries."
-	@echo "    boot  : Boots design via jtag (see hw/proj/jtagboot.tcl)."
-	@echo "    image : Creates the boot.bin file."
-	@echo "    clean : Cleans all generated products (in the hw/build and sw/build directories)."
+	@echo "    all          : Creates all products (fsbl, bitstream, device-tree). Use clean first to re-create all."
+	@echo "    hw           : Builds the FPGA binaries."
+	@echo "    sw           : Builds the software bsp and fsbl binaries."
+	@echo "    boot         : Boots design via jtag (see hw/proj/jtagboot.tcl)."
+	@echo "    image        : Creates the boot.bin file."
+	@echo "    updateboot   : Copies the image file to the remote board. (Board must be booted w/initramfs, i.e. JTAG)"
+	@echo "    updaterootfs : Copies the rootfs to the remote board. (Board must be booted w/initramfs)"
+	@echo "    updateall    : Performs both updateboot and updaterootfs operations."
+	@echo "    clean        : Cleans all generated products (in the hw/build and sw/build directories)."
 
 
 build:
@@ -50,6 +61,7 @@ boot:
 	  $(XSDB) $(JTAG_BOOT_SCRIPT))
 
 image: | build
+	@echo "Creating bootgen image file, boot.bin"
 	@echo "image : {" > $(BOOT_BIF)
 	@echo "    [bootloader]$(FSBL_PATH)" >> $(BOOT_BIF)
 	@echo "    $(BITFILE)" >> $(BOOT_BIF)
@@ -59,6 +71,19 @@ image: | build
 	@echo "    [load=0x13200000]$(UIMAGE_PATH)" >> $(BOOT_BIF)
 	@echo "}" >> $(BOOT_BIF)
 	bootgen -w -image $(BOOT_BIF) -o i $(BOOT_BIN)
+	@echo "Creating uEnv.txt"
+	@echo "bootargs=$(UENV_BOOTARGS)" > $(UENV)
+	@echo "bootcmd=$(UENV_BOOTCMD)" >> $(UENV)
+	@echo "uenvcmd=boot" >> $(UENV)
+	@echo "" >> $(UENV)
+
+updateall: image updateboot updaterootfs
+
+updateboot:
+	@scripts/copy_boot.sh remote
+
+updaterootfs:
+	@scripts/copy-rootfs.sh $(ROOTFS)
 
 clean:
 	@rm -rf build/
