@@ -22,6 +22,7 @@ proc create_proj {buildpath part block_design srcs ip constr {project_name "proj
         }
     }
 
+
     if { [llength $ip] != 0 } {
         foreach f $ip {
             read_ip $f
@@ -36,9 +37,14 @@ proc create_proj {buildpath part block_design srcs ip constr {project_name "proj
     }
 }
 
-proc run_synth {name {jobs 4}} {
+proc run_synth {name jobs {generics {}}} {
     puts "Running synth ..."
     reset_run $name
+
+    if { [llength $generics] != 0 } {
+        set_property generic "$generics" [current_fileset]
+    }
+
     launch_runs $name -jobs $jobs
     wait_on_run $name
 }

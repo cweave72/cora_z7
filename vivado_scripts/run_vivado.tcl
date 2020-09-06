@@ -54,7 +54,7 @@ if {[lsearch -exact $jobs "proj"] >= 0} {
 }
 
 if {[lsearch -exact $jobs "synth"] >= 0} {
-    process::run_synth synth_1
+    process::run_synth synth_1 4 $generics
 }
 
 if {[lsearch -exact $jobs "par"] >= 0} {
