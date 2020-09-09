@@ -14,7 +14,7 @@ lappend generics "DMEM_DEPTH=16384"
 lappend generics "IMEM_DEPTH=65536"
 lappend generics "USE_CORE_MGR_ROM=0"
 lappend generics "GPIO_PORT_WIDTH=8"
-lappend generics "NUM_TIMERS=3"
+lappend generics "NUM_TIMERS=1"
 lappend generics "TICKS_PER_US=50"
 lappend generics "SWTIMER_WIDTH=32"
 lappend generics "TIMER_WIDTH=16"
@@ -55,7 +55,8 @@ lappend srcs "$currpath/../vhdl/risc-v/core/src/AXI_CoreMgr.vhd"
 lappend srcs "$currpath/../vhdl/src/RV32_sys.vhd"
 lappend srcs "$currpath/../vhdl/src/system_top.vhd"
 
-set ip {}
+set ip [list]
+lappend ip "$currpath/../vhdl/ip/ila_1/ila_1/ila_1.xci"
 
 # Define list of xdc files to be added to the project.
 set constr [list]

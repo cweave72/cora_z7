@@ -12,7 +12,10 @@ UCOS_LIBPATH := $(UCOS)/build
 UCOS_CFG_INCLUDE_PATH := $(CURDIR)/pubinc
 
 RV32_PERIPH := $(CURDIR)/../risc-v/periph
+RV32_LIB := $(CURDIR)/../risc-v/lib
 MK_ROM_PKG := $(CURDIR)/../../../../components/RV32/python/make_rom/make_rom.py
+
+TIMER_NUM_PWM_OUTPUTS ?= 6
 
 SRC := \
 	$(CURDIR)/start.s \
@@ -22,6 +25,7 @@ SRC := \
 	$(RV32_PERIPH)/timer/src/timer.c \
 	$(RV32_PERIPH)/irqctlr/src/irqctlr.c \
 	$(RV32_PERIPH)/stream/src/stream.c \
+	$(RV32_LIB)/rgb/src/rgb.c \
 	$(CURDIR)/src/tasks.c \
 	$(CURDIR)/src/main.c
 
@@ -30,6 +34,7 @@ INC = \
 	-I $(RV32_PERIPH)/timer/pubinc \
 	-I $(RV32_PERIPH)/stream/pubinc \
 	-I $(RV32_PERIPH)/irqctlr/pubinc \
+	-I $(RV32_LIB)/rgb/pubinc \
 	-I $(UCOS)/core/src \
 	-I $(UCOS)/port/src \
 	-I $(CURDIR)/pubinc
@@ -41,6 +46,8 @@ DEFINES = \
 	-DPRINTF_DISABLE_SUPPORT_EXPONENTIAL \
 	-DPRINTF_DISABLE_SUPPORT_LONG_LONG \
 	-DPRINTF_DISABLE_SUPPORT_PTRDIFF_T \
+	-DTIMER_NUM_PWM_OUTPUTS=$(TIMER_NUM_PWM_OUTPUTS) \
+	$(if $(OS_TICKS_PER_SEC),-DOS_TICKS_PER_SEC=$(OS_TICKS_PER_SEC),) \
 
 define getObj
 $(addsuffix .o, $(addprefix build/, $(notdir $(basename $(1)))))
@@ -65,7 +72,7 @@ build:
 
 define build_objs
 $$(call getObj, $(1)): $(1)
-	$$(CROSS_COMPILE)gcc $$(CFLAGS) $$(CPPFLAGS) $$(INC) -c -o $$@ $$<
+	$$(CROSS_COMPILE)gcc $$(CFLAGS) $$(CPPFLAGS) $$(DEFINES) $$(INC) -c -o $$@ $$<
 endef
 
 # Create rules to create objs from sources.
@@ -85,7 +92,8 @@ $(TARGET_BIN): $(TARGET_ELF)
 	@python3 $(MK_ROM_PKG) $@ -o build/Rom_Init_P.vhd
 
 ucos:
-	$(MAKE) -C $(UCOS) OS_CFG_INCLUDE_PATH=$(UCOS_CFG_INCLUDE_PATH) all
+	$(MAKE) -C $(UCOS) OS_CFG_INCLUDE_PATH=$(UCOS_CFG_INCLUDE_PATH) \
+		OS_TICKS_PER_SEC=$(OS_TICKS_PER_SEC) all
 
 clean: ucos_clean
 	@rm -rf build

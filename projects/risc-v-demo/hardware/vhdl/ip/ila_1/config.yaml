@@ -1,0 +1,12 @@
+# Configure ILA properties
+name              : ila_1
+capture_depth     : 4096
+all_probe_same_mu : true
+probe_match_count : 2
+num_probes        : 2
+
+# Probe port widths:
+probe_0:
+    width: 1
+probe_1:
+    width: 32

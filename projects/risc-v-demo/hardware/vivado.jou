@@ -2,20 +2,11 @@
 # Vivado v2018.2 (64-bit)
 # SW Build 2258646 on Thu Jun 14 20:02:38 MDT 2018
 # IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
-# Start of session at: Sun Sep  6 02:10:59 2020
-# Process ID: 46
+# Start of session at: Wed Sep  9 13:14:58 2020
+# Process ID: 262
 # Current directory: /mnt/probox/shares/netshare/cora_z7/projects/risc-v-demo/hardware
-# Command line: vivado build/project_1.xpr
+# Command line: vivado -mode batch -notrace -source /mnt/probox/shares/netshare/cora_z7/projects/risc-v-demo/hardware/../../../vivado_scripts/run_vivado.tcl -tclargs par
 # Log file: /mnt/probox/shares/netshare/cora_z7/projects/risc-v-demo/hardware/vivado.log
 # Journal file: /mnt/probox/shares/netshare/cora_z7/projects/risc-v-demo/hardware/vivado.jou
 #-----------------------------------------------------------
-start_gui
-open_project build/project_1.xpr
-update_compile_order -fileset sources_1
-open_run impl_1
-report_utilization -name utilization_1
-open_bd_design {/mnt/probox/shares/netshare/cora_z7/projects/risc-v-demo/hardware/build/project_1.srcs/sources_1/bd/system/system.bd}
-startgroup
-set_property -dict [list CONFIG.STRATEGY {1}] [get_bd_cells axi_interconnect_0]
-endgroup
-open_bd_design {/mnt/probox/shares/netshare/cora_z7/projects/risc-v-demo/hardware/build/project_1.srcs/sources_1/bd/system/system.bd}
+source /mnt/probox/shares/netshare/cora_z7/projects/risc-v-demo/hardware/../../../vivado_scripts/run_vivado.tcl -notrace

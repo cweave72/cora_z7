@@ -51,7 +51,11 @@
 #define OS_SCHED_LOCK_EN          1u   /* Include code for OSSchedLock() and OSSchedUnlock()           */
 
 #define OS_TICK_STEP_EN           1u   /* Enable tick stepping feature for uC/OS-View                  */
+
+#ifndef OS_TICKS_PER_SEC
+#warning "Using default OS_TICKS_PER_SEC = 200."
 #define OS_TICKS_PER_SEC        200u   /* Set the number of ticks in one second                        */
+#endif
 
 #define OS_TLS_TBL_SIZE           0u   /* Size of Thread-Local Storage Table                           */
 

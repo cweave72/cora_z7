@@ -3,6 +3,7 @@
 *.dtb
 *.o
 *.log
+vivado_*
 done.flag
 cscope.files
 cscope.out

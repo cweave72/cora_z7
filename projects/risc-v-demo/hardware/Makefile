@@ -63,14 +63,17 @@ par: | build
 	 $(VIVADO) -mode batch -notrace -source $(SCRIPTS)/run_vivado.tcl -tclargs $@)
 	unzip -o -d build/ $(TARGET)
 
+ip: $(IP_FLAG)
+
 $(IP_FLAG):
-	@echo $(MAKE) -C $(IP_DIR)
-	#@touch $(IP_FLAG)
+	$(MAKE) -C $(IP_DIR)
+	@touch $(IP_FLAG)
 
 gui:
 	$(VIVADO) build/project_1.xpr
 
 clean:
-	#$(MAKE) -C $(IP_DIR) clean
+	$(MAKE) -C $(IP_DIR) clean
+	rm $(IP_FLAG)
 	rm -rf build/ NA/
 	rm -f vivado*

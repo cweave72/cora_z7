@@ -54,8 +54,12 @@ architecture rtl of System_top is
     constant FCLK_TICKS_PER_ms : integer := FCLK_TICKS_PER_us*1000;
     constant FCLK_TICKS_PER_s  : integer := FCLK_TICKS_PER_ms*1000;
 
-    signal Clk     : std_logic;
-    signal Reset_n : std_logic;
+    constant NUM_PWM_OUTPUTS : integer := 6;
+    constant PWM_TIMER_WIDTH : integer := 16;
+
+    signal Clk          : std_logic;
+    signal Reset_n      : std_logic;
+    signal Core_Reset_n : std_logic;
 
     --signal PL_Gpio : std_logic_vector(5 downto 0);
 
@@ -87,8 +91,12 @@ architecture rtl of System_top is
     signal M_Debug_TLAST  : std_logic;
 
     signal Rv_Gpio        : std_logic_vector(GPIO_PORT_WIDTH-1 downto 0);
+    signal Pwm_out        : std_logic_vector(NUM_PWM_OUTPUTS-1 downto 0);
 
     signal AXI_STR_RXD_tdata : std_logic_vector(31 downto 0);
+
+    signal DebugTrace       : std_logic_vector(31 downto 0);
+    signal DebugTrace_valid : std_logic;
 
     --signal Test_Addr : unsigned(Utils_numBits(RAM_DEPTH-1)-1 downto 0);
     --signal Test_RdData : std_logic_vector(31 downto 0);
@@ -144,13 +152,13 @@ architecture rtl of System_top is
         );
     end component;
 
-    --component ila_1
-    --port (
-    --    clk : IN STD_LOGIC;
-    --    probe0 : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
-    --    probe1 : IN STD_LOGIC_VECTOR(31 DOWNTO 0)
-    --);
-    --end component;
+    component ila_1
+    port (
+        clk : IN STD_LOGIC;
+        probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe1 : IN STD_LOGIC_VECTOR(31 DOWNTO 0)
+    );
+    end component;
 
 begin
 
@@ -210,15 +218,17 @@ begin
             AXI_STR_RXD_tvalid => M_Debug_TVALID
         );
 
-    Led0_r <= '0';
-    Led0_g <= '0';
-    Led0_b <= '0';
+    Led0_r <= Pwm_out(0) or Btn_1;
+    Led0_g <= Pwm_out(1) or Btn_1;
+    Led0_b <= Pwm_out(2) or Btn_1;
 
-    Led1_r <= '0';
-    Led1_g <= '0';
-    Led1_b <= '0';
+    Led1_r <= Pwm_out(3) or Btn_1;
+    Led1_g <= Pwm_out(4) or Btn_1;
+    Led1_b <= Pwm_out(5) or Btn_1;
 
     AXI_STR_RXD_tdata <= x"000000" & M_Debug_TDATA;
+
+    Core_Reset_n <= '0' when (Btn_0 = '1' or Reset_n = '0') else '1';
 
     U_RV32_sys: RV32_sys
         generic map(
@@ -232,11 +242,13 @@ begin
             SWTIMER_WIDTH   =>  SWTIMER_WIDTH,
             TIMER_WIDTH     =>  TIMER_WIDTH,
             NUM_TIMERS      =>  NUM_TIMERS,
+            NUM_PWM_OUTPUTS => NUM_PWM_OUTPUTS,
+            PWM_TIMER_WIDTH => PWM_TIMER_WIDTH,
             TICKS_PER_US    =>  TICKS_PER_US
         )
         port map(
             Clk           => Clk,
-            Reset_n       => Reset_n,
+            Reset_n       => Core_Reset_n,
             -- External irqs
             Irq_ext       => "00",
             -- AXI slave interface.
@@ -261,11 +273,23 @@ begin
             S_AXI_RREADY  => s_axi_rready,
             -- GPIO
             Gpio_port     => Rv_Gpio,
+            -- PWM out
+            Pwm_out       => Pwm_out,
             -- Debug Message Stream
             M_Debug_TVALID => M_Debug_TVALID,
             M_Debug_TREADY => M_Debug_TREADY,
             M_Debug_TDATA  => M_Debug_TDATA,
-            M_Debug_TLAST  => M_Debug_TLAST
+            M_Debug_TLAST  => M_Debug_TLAST,
+            -- Debug trace
+            DebugTrace       => DebugTrace,
+            DebugTrace_valid => DebugTrace_valid
         );
+
+    U_ila: ila_1
+    port map(
+        clk    => Clk,
+        probe0(0) => DebugTrace_valid,
+        probe1 => DebugTrace
+    );
 
 end architecture;

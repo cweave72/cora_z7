@@ -26,6 +26,8 @@ component RV32_sys is
         SWTIMER_WIDTH   : integer := 32;
         TIMER_WIDTH     : integer := 32;
         NUM_TIMERS      : integer;
+        NUM_PWM_OUTPUTS : integer;
+        PWM_TIMER_WIDTH : integer;
         TICKS_PER_US    : integer
     );
     port (
@@ -55,11 +57,16 @@ component RV32_sys is
         S_AXI_RREADY  : in std_logic;
         -- GPIO
         Gpio_port     : inout std_logic_vector(GPIO_PORT_WIDTH-1 downto 0);
+        -- PWM out
+        Pwm_out       : out std_logic_vector(NUM_PWM_OUTPUTS-1 downto 0);
         -- Debug Message Stream
         M_Debug_TVALID : out std_logic;
         M_Debug_TREADY : in std_logic;
         M_Debug_TDATA  : out std_logic_vector(7 downto 0);
-        M_Debug_TLAST  : out std_logic
+        M_Debug_TLAST  : out std_logic;
+        -- Debug Trace
+        DebugTrace       : out std_logic_vector(31 downto 0);
+        DebugTrace_valid : out std_logic
     );
 end component;
 end package;
@@ -89,6 +96,8 @@ entity RV32_sys is
         SWTIMER_WIDTH   : integer := 32;
         TIMER_WIDTH     : integer := 32;
         NUM_TIMERS      : integer;
+        NUM_PWM_OUTPUTS : integer;
+        PWM_TIMER_WIDTH : integer;
         TICKS_PER_US    : integer
     );
     port (
@@ -118,11 +127,16 @@ entity RV32_sys is
         S_AXI_RREADY  : in std_logic;
         -- GPIO
         Gpio_port     : inout std_logic_vector(GPIO_PORT_WIDTH-1 downto 0);
+        -- PWM out
+        Pwm_out       : out std_logic_vector(NUM_PWM_OUTPUTS-1 downto 0);
         -- Debug Message Stream
         M_Debug_TVALID : out std_logic;
         M_Debug_TREADY : in std_logic;
         M_Debug_TDATA  : out std_logic_vector(7 downto 0);
-        M_Debug_TLAST  : out std_logic
+        M_Debug_TLAST  : out std_logic;
+        -- Debug Trace
+        DebugTrace       : out std_logic_vector(31 downto 0);
+        DebugTrace_valid : out std_logic
     );
 end entity;
 
@@ -155,9 +169,6 @@ architecture rtl of RV32_sys is
     signal S_TDATA             : WordArray_type(NUM_STREAMS-1 downto 0);
     signal S_TLAST             : std_logic_vector(NUM_STREAMS-1 downto 0);
 
-    signal DebugTrace          : std_logic_vector(31 downto 0);
-    signal DebugTrace_valid    : std_logic;
-    
 begin
 
     U_AXI_CoreMgr: AXI_CoreMgr
@@ -231,6 +242,8 @@ begin
             SWTIMER_WIDTH   => SWTIMER_WIDTH,
             TIMER_WIDTH     => TIMER_WIDTH,
             NUM_TIMERS      => NUM_TIMERS,
+            NUM_PWM_OUTPUTS => NUM_PWM_OUTPUTS,
+            PWM_TIMER_WIDTH => PWM_TIMER_WIDTH,
             NUM_STREAMS     => NUM_STREAMS,
             TICKS_PER_US    => TICKS_PER_US   
         )
@@ -247,6 +260,7 @@ begin
             GPIO_io      => Gpio,
             TimerExpired => TimerExpired,
             TimerThresh  => TimerThresh,
+            Pwm_out      => Pwm_out,
             -- Outbound streams
             M_TVALID      => M_TVALID,
             M_TREADY      => M_TREADY,

@@ -5,6 +5,7 @@
 
 #include <timer.h>
 #include <irqctlr.h>
+#include <rgb.h>
 #include <debug.h>
 
 #include <ucos_ii.h>

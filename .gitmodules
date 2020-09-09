@@ -16,6 +16,7 @@
 [submodule "components/RV32"]
 	path = components/RV32
 	url = ../RV32.git
+    ignore = dirty
 [submodule "components/common-vhdl"]
 	path = components/common-vhdl
 	url = ../common-vhdl.git
