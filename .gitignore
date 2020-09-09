@@ -4,6 +4,7 @@
 *.o
 *.log
 vivado_*
+vivado*.jou
 done.flag
 cscope.files
 cscope.out
