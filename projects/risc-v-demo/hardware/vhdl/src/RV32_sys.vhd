@@ -63,10 +63,7 @@ component RV32_sys is
         M_Debug_TVALID : out std_logic;
         M_Debug_TREADY : in std_logic;
         M_Debug_TDATA  : out std_logic_vector(7 downto 0);
-        M_Debug_TLAST  : out std_logic;
-        -- Debug Trace
-        DebugTrace       : out std_logic_vector(31 downto 0);
-        DebugTrace_valid : out std_logic
+        M_Debug_TLAST  : out std_logic
     );
 end component;
 end package;
@@ -133,14 +130,17 @@ entity RV32_sys is
         M_Debug_TVALID : out std_logic;
         M_Debug_TREADY : in std_logic;
         M_Debug_TDATA  : out std_logic_vector(7 downto 0);
-        M_Debug_TLAST  : out std_logic;
-        -- Debug Trace
-        DebugTrace       : out std_logic_vector(31 downto 0);
-        DebugTrace_valid : out std_logic
+        M_Debug_TLAST  : out std_logic
     );
 end entity;
 
 architecture rtl of RV32_sys is
+
+    signal S_AXI_AWREADY_s     : std_logic;
+    signal S_AXI_WREADY_s      : std_logic;
+    signal S_AXI_ARREADY_s     : std_logic;
+    signal S_AXI_RDATA_s       : std_logic_vector(31 downto 0);
+    signal S_AXI_RVALID_s      : std_logic;
 
     signal Core_reset          : std_logic;
     signal Core_reset_n        : std_logic;
@@ -169,7 +169,37 @@ architecture rtl of RV32_sys is
     signal S_TDATA             : WordArray_type(NUM_STREAMS-1 downto 0);
     signal S_TLAST             : std_logic_vector(NUM_STREAMS-1 downto 0);
 
+    signal DebugTrace       : std_logic_vector(31 downto 0);
+    signal DebugTrace_valid : std_logic;
+
+    component ila_1
+    port (
+        clk : IN STD_LOGIC;
+        probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe1 : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        probe2 : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        probe3 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe4 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe5 : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        probe6 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe7 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe8 : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        probe9 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe10 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe11 : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        probe12 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe13 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        probe14 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
+    );
+    end component;
+
 begin
+
+    S_AXI_AWREADY <= S_AXI_AWREADY_s;
+    S_AXI_WREADY  <= S_AXI_WREADY_s;
+    S_AXI_ARREADY <= S_AXI_ARREADY_s;
+    S_AXI_RDATA   <= S_AXI_RDATA_s;
+    S_AXI_RVALID  <= S_AXI_RVALID_s;
 
     U_AXI_CoreMgr: AXI_CoreMgr
         generic map(
@@ -183,21 +213,21 @@ begin
             S_AXI_AWADDR  => S_AXI_AWADDR,
             S_AXI_AWPROT  => S_AXI_AWPROT,
             S_AXI_AWVALID => S_AXI_AWVALID,
-            S_AXI_AWREADY => S_AXI_AWREADY,
+            S_AXI_AWREADY => S_AXI_AWREADY_s,
             S_AXI_WDATA   => S_AXI_WDATA,
             S_AXI_WSTRB   => S_AXI_WSTRB,
             S_AXI_WVALID  => S_AXI_WVALID,
-            S_AXI_WREADY  => S_AXI_WREADY,
+            S_AXI_WREADY  => S_AXI_WREADY_s,
             S_AXI_BRESP   => S_AXI_BRESP,
             S_AXI_BVALID  => S_AXI_BVALID,
             S_AXI_BREADY  => S_AXI_BREADY,
             S_AXI_ARADDR  => S_AXI_ARADDR,
             S_AXI_ARPROT  => S_AXI_ARPROT,
             S_AXI_ARVALID => S_AXI_ARVALID,
-            S_AXI_ARREADY => S_AXI_ARREADY,
-            S_AXI_RDATA   => S_AXI_RDATA,
+            S_AXI_ARREADY => S_AXI_ARREADY_s,
+            S_AXI_RDATA   => S_AXI_RDATA_s,
             S_AXI_RRESP   => S_AXI_RRESP,
-            S_AXI_RVALID  => S_AXI_RVALID,
+            S_AXI_RVALID  => S_AXI_RVALID_s,
             S_AXI_RREADY  => S_AXI_RREADY,
             -- Control Output
             Core_reset    => Core_reset,
@@ -207,6 +237,26 @@ begin
             IMem_Addr     => CoreMgr_IMem_Addr,
             IMem_RdData   => CoreMgr_IMem_RdData
         );
+
+    U_ila: ila_1
+    port map(
+        clk    => Clk,
+        probe0(0) => DebugTrace_valid,
+        probe1 => DebugTrace,
+        probe2 => S_AXI_AWADDR,
+        probe3(0) => S_AXI_AWVALID,
+        probe4(0) => S_AXI_AWREADY_s,
+        probe5 => S_AXI_WDATA,
+        probe6(0) => S_AXI_WVALID,
+        probe7(0) => S_AXI_WREADY_s,
+        probe8 => S_AXI_ARADDR,
+        probe9(0) => S_AXI_ARVALID,
+        probe10(0) => S_AXI_ARREADY_s,
+        probe11 => S_AXI_RDATA_s,
+        probe12(0) => S_AXI_RVALID_s,
+        probe13(0) => S_AXI_RREADY,
+        probe14(0) => Core_reset
+    );
 
     UseCoreMgrRom_gen: if USE_CORE_MGR_ROM = 1 generate
     begin

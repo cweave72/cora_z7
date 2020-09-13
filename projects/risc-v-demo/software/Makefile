@@ -51,10 +51,11 @@ BSPFLAG := build/bsp/done.flag
 #$(info HDRS = "$(HDRS)")
 #$(info OBJS = "$(OBJS)")
 
-all: build/$(PROG) dtb
+all: build/$(PROG) dtb kmod
 
 clean:
 	rm -rf build/
+	$(MAKE) -C kmod clean
 
 build:
 	mkdir -p $@
@@ -96,6 +97,10 @@ $(DTS): $(HWDEF) $(DTS_USER)
 	cp $(DTS_USER) build/dts/
 	@echo "Patching dts file to include system-user.dtsi."
 	@sed -i '/^\/include\/ "pcw.dtsi"/a \/include\/ "system-user.dtsi"' $@
+
+.PHONY: kmod
+kmod:
+	$(MAKE) -C kmod
 
 gui:
 	xsdk -workspace build/bsp -wait

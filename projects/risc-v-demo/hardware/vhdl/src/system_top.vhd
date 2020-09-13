@@ -95,9 +95,6 @@ architecture rtl of System_top is
 
     signal AXI_STR_RXD_tdata : std_logic_vector(31 downto 0);
 
-    signal DebugTrace       : std_logic_vector(31 downto 0);
-    signal DebugTrace_valid : std_logic;
-
     --signal Test_Addr : unsigned(Utils_numBits(RAM_DEPTH-1)-1 downto 0);
     --signal Test_RdData : std_logic_vector(31 downto 0);
 
@@ -150,14 +147,6 @@ architecture rtl of System_top is
             M01_AXI_wstrb : out STD_LOGIC_VECTOR ( 3 downto 0 );
             M01_AXI_wvalid : out STD_LOGIC_VECTOR ( 0 to 0 )
         );
-    end component;
-
-    component ila_1
-    port (
-        clk : IN STD_LOGIC;
-        probe0 : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-        probe1 : IN STD_LOGIC_VECTOR(31 DOWNTO 0)
-    );
     end component;
 
 begin
@@ -279,17 +268,8 @@ begin
             M_Debug_TVALID => M_Debug_TVALID,
             M_Debug_TREADY => M_Debug_TREADY,
             M_Debug_TDATA  => M_Debug_TDATA,
-            M_Debug_TLAST  => M_Debug_TLAST,
-            -- Debug trace
-            DebugTrace       => DebugTrace,
-            DebugTrace_valid => DebugTrace_valid
+            M_Debug_TLAST  => M_Debug_TLAST
         );
 
-    U_ila: ila_1
-    port map(
-        clk    => Clk,
-        probe0(0) => DebugTrace_valid,
-        probe1 => DebugTrace
-    );
 
 end architecture;

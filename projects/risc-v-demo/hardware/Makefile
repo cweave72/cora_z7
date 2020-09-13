@@ -6,8 +6,6 @@ XSDB := /opt/Xilinx/Vivado/$(VIVADO_VERSION)/bin/xsdb
 TARGET = build/System_top.hdf
 IP_DIR = vhdl/ip
 
-IP_FLAG = $(IP_DIR)/done.flag
-
 SCRIPTS = $(CURDIR)/../../../vivado_scripts
 PROJ_DIR = $(CURDIR)/proj
 BUILD_DIR = $(CURDIR)/build
@@ -31,7 +29,7 @@ help:
 build:
 	@mkdir -p $@
 
-$(TARGET): $(IP_FLAG) | build
+$(TARGET): ip | build
 	@echo "Building PL design."
 	(PROJ_DIR=$(PROJ_DIR) \
 	 BUILD_DIR=$(BUILD_DIR) \
@@ -40,7 +38,7 @@ $(TARGET): $(IP_FLAG) | build
 	unzip -o -d build/ $@
 
 # make proj (to create a new project only)
-proj: clean $(IP_FLAG) | build 
+proj: clean ip | build 
 	@echo "Cleaning and creating new project."
 	(PROJ_DIR=$(PROJ_DIR) \
 	 BUILD_DIR=$(BUILD_DIR) \
@@ -63,17 +61,13 @@ par: | build
 	 $(VIVADO) -mode batch -notrace -source $(SCRIPTS)/run_vivado.tcl -tclargs $@)
 	unzip -o -d build/ $(TARGET)
 
-ip: $(IP_FLAG)
-
-$(IP_FLAG):
+ip:
 	$(MAKE) -C $(IP_DIR)
-	@touch $(IP_FLAG)
 
 gui:
 	$(VIVADO) build/project_1.xpr
 
 clean:
 	$(MAKE) -C $(IP_DIR) clean
-	rm $(IP_FLAG)
 	rm -rf build/ NA/
 	rm -f vivado*

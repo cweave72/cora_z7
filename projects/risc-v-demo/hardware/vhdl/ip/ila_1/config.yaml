@@ -3,10 +3,36 @@ name              : ila_1
 capture_depth     : 4096
 all_probe_same_mu : true
 probe_match_count : 2
-num_probes        : 2
+num_probes        : 15
 
 # Probe port widths:
 probe_0:
     width: 1
 probe_1:
     width: 32
+probe_2:
+    width: 32
+probe_3:
+    width: 1
+probe_4:
+    width: 1
+probe_5:
+    width: 32
+probe_6:
+    width: 1
+probe_7:
+    width: 1
+probe_8:
+    width: 32
+probe_9:
+    width: 1
+probe_10:
+    width: 1
+probe_11:
+    width: 32
+probe_12:
+    width: 1
+probe_13:
+    width: 1
+probe_14:
+    width: 1

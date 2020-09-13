@@ -12,7 +12,7 @@ set block_design "$currpath/system_bd.tcl"
 set generics [list]
 lappend generics "DMEM_DEPTH=16384"
 lappend generics "IMEM_DEPTH=65536"
-lappend generics "USE_CORE_MGR_ROM=0"
+lappend generics "USE_CORE_MGR_ROM=1"
 lappend generics "GPIO_PORT_WIDTH=8"
 lappend generics "NUM_TIMERS=1"
 lappend generics "TICKS_PER_US=50"
